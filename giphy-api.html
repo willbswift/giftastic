@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <title>Giphy API</title>
+
+  <style type="text/css">
+    button,
+    div,
+    form,
+    input {
+      margin: 10px;
+    }
+    .gif {
+      float: left;
+    }    
+  </style>
+</head>
+
+<body>
+
+  <div class="container">
+    <h1>Gif Search</h1>
+
+    <!-- Rendered Buttons will get Dumped Here  -->
+    <div id="buttons-view"></div>
+
+    <form id="gif-form">
+      <label for="gif-input">Get Gifs, Yo!</label>
+      <input type="text" id="gif-input">
+      <br>
+
+      <!-- Button triggers new movie to be added -->
+      <input id="add-gif" type="submit" value="Get Gifs, Yo!">
+    </form>
+
+    <!-- Gifs will Get Dumped Here -->
+    <div id="gif-view"></div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+  <script type="text/javascript">
+
+      // Initial array of buttons
+    let subjects = ["Doctor Who", "Picard", "Enterprise", "Jedi"];
+
+// displayGifs function re-renders the HTML to display the appropriate content
+    function displayGifs() {
+
+        // queryURL for Giphy API
+      let subject = $(this).attr("data-name");
+
+        // Giphy key
+      let key = "us2EJqI4tt6cPw5iasCS3QYt6CPE6apc";
+
+        // Constructing a URL to search Giphy for the name of the person who said the quote
+      let queryURL = "https://api.giphy.com/v1/gifs/search?q=" + subject + "&api_key=" + key;
+
+        // Performing our AJAX GET request
+      $.ajax({
+        url: queryURL,
+        method: "GET"
+        // After the data comes back from the API
+      }).then(function(response) {
+
+        console.log(response);
+
+          // Storing an array of results in the results variable
+        let results = response.data;
+      
+          // Looping over every result item
+        for (var i = 0; i < results.length; i++) {
+
+            // Only taking action if the photo has an appropriate rating
+          if (results[i].rating !== "r") {
+              
+              // Creating a div for the gif
+            let gifDiv = $("<div class='gif'>");
+              
+              // Storing the result item's rating
+            let rating = results[i].rating;
+
+              // Creating a paragraph tag with the result item's rating
+            let p = $("<p>").text("Rating: " + rating);
+
+              // Creating an image tag
+            let personImage = $("<img>");
+
+              // Giving the image tag an src attribute of a proprty pulled off the
+              // result item
+            personImage.attr("src", results[i].images.fixed_height.url);
+
+              // Appending the paragraph and personImage we created to the "gifDiv" div we created
+            gifDiv.append(p);
+            gifDiv.append(personImage);
+
+              // Prepending the gifDiv to the "#gif-view" div in the HTML
+            $("#gif-view").prepend(gifDiv);
+          }
+        }
+      });
+    }
+
+      // Function for displaying movie data
+    function renderButtons() {
+
+        // Deleting the movies prior to adding new subject buttons
+        // (this is necessary otherwise you will have repeat buttons)
+      $("#buttons-view").empty();
+
+        // Looping through the array of subject buttons
+      for (let i = 0; i < subjects.length; i++) {
+
+          // Then dynamicaly generating buttons for each subject in the array
+          // This code $("<button>") is all jQuery needs to create the beginning and end tag. (<button></button>)
+        let a = $("<button>");
+
+          // Adding a class of movie-btn to our button
+        a.addClass("gif-btn");
+
+          // Adding a data-attribute
+        a.attr("data-name", subjects[i]);
+
+          // Providing the initial button text
+        a.text(subjects[i]);
+
+          // Adding the button to the buttons-view div
+        $("#buttons-view").append(a);
+      }
+    }
+
+      // This function handles events where a movie button is clicked
+    $("#add-gif").on("click", function(event) {
+      event.preventDefault();
+      
+        // This line grabs the input from the textbox
+      let gif = $("#gif-input").val().trim();
+
+        // Adding subject from the textbox to our array
+      subjects.push(gif);
+
+        // Calling renderButtons which handles the processing of our subject array
+      renderButtons();
+    });
+
+      // Adding a click event listener to all elements with a class of "movie-btn"
+    $(document).on("click", ".gif-btn", displayGifs);
+
+      // Calling the renderButtons function to display the intial buttons
+    renderButtons();
+
+  </script>
+
+</body>
+
+</html>
